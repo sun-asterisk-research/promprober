@@ -1,4 +1,4 @@
-package common
+package probes
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/cloudprober/cloudprober/probes/options"
 	"github.com/cloudprober/cloudprober/targets/endpoint"
 	"github.com/sirupsen/logrus"
+	"github.com/sun-asterisk-research/cloudprober/common"
 )
 
 type Probe interface {
@@ -16,15 +17,6 @@ type Probe interface {
 	GetType() string
 	Logger() *logrus.Entry
 	Run(ctx context.Context, target endpoint.Endpoint, em *metrics.EventMetrics) (success bool, err error)
-}
-
-func IsCtxDone(ctx context.Context) bool {
-	select {
-	case <-ctx.Done():
-		return true
-	default:
-		return false
-	}
 }
 
 func RunProbe(ctx context.Context, p Probe, target endpoint.Endpoint, dataChan chan *metrics.EventMetrics) {
@@ -36,7 +28,7 @@ func RunProbe(ctx context.Context, p Probe, target endpoint.Endpoint, dataChan c
 
 	for ts := time.Now(); true; ts = <-ticker.C {
 		// Don't run another probe if context is canceled already.
-		if IsCtxDone(ctx) {
+		if common.IsCtxDone(ctx) {
 			return
 		}
 

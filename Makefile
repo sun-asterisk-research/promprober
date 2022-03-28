@@ -1,12 +1,13 @@
 OUTIDR ?= _output
 COMPOSE_PROJECT_NAME ?= cloudprober
 CONFIG_FILE ?= _dev/cloudprober.cfg
+IMAGE_PREFIX = sunasteriskrnd
+TAG ?= latest
 
 pb-gen:
 	@./scripts/pb_gen.sh
 
 gofmt:
-#	gofmt -w $$(go list ./...)
 	gofmt -w $$(go list ./... | sed -re "s/^github.com\/sun-asterisk-research\/cloudprober\///")
 
 build:
@@ -29,3 +30,6 @@ devenv:
 
 devenv-down:
 	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker-compose down
+
+dockerbuild:
+	docker build . -t "$(IMAGE_PREFIX)/cloudprober:$(TAG)"

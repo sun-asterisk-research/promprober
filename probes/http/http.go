@@ -21,6 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sun-asterisk-research/cloudprober/common"
 	"github.com/sun-asterisk-research/cloudprober/common/tls"
+	"github.com/sun-asterisk-research/cloudprober/probes"
 	configpb "github.com/sun-asterisk-research/cloudprober/probes/http/proto"
 	// "github.com/cloudprober/cloudprober/validators"
 )
@@ -371,7 +372,7 @@ func (p *Probe) updateTargetsAndStartProbes(ctx context.Context, dataChan chan *
 			defer p.waitGroup.Done()
 			// Wait for wait time + some jitter before starting this probe loop.
 			time.Sleep(waitTime + time.Duration(rand.Int63n(gapBetweenTargets.Microseconds()/10))*time.Microsecond)
-			common.RunProbe(probeCtx, p, target, dataChan)
+			probes.RunProbe(probeCtx, p, target, dataChan)
 		}(target, startWaitTime)
 
 		startWaitTime += gapBetweenTargets
