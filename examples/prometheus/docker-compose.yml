@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    ports:
+    - 9090:9090
+    entrypoint:
+      - sh
+      - -c
+      - |
+        cat << EOF | tee > /prometheus/prometheus.yml && exec /bin/prometheus "$$@"
+        global:
+          scrape_interval: 15s
+
+        scrape_configs:
+          - job_name: 'cloudprober'
+
+            static_configs:
+              - targets: ['go:9313']
+        EOF
+    volumes:
+    - ./_dev/prometheus:/prometheus/data

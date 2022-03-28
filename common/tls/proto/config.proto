@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+package common.tls;
+
+option go_package = "github.com/sun-asterisk-research/cloudprober/common/tls/proto";
+
+message TLSConfig {
+  // CA certificate file to verify certificates provided by the other party.
+  optional string ca_file = 1;
+
+  // Local certificate file.
+  optional string cert_file = 2;
+
+  // Private key file corresponding to the certificate above.
+  optional string key_file = 3;
+
+  // Whether to ignore the cert validation.
+  optional bool insecure_skip_verify = 4;
+
+  // ServerName override
+  optional string server_name = 5;
+}

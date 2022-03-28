@@ -1,0 +1,62 @@
+syntax = "proto2";
+
+option go_package="github.com/sun-asterisk-research/cloudprober/probes/http/proto";
+
+import "github.com/cloudprober/cloudprober/probes/proto/config.proto";
+import "github.com/sun-asterisk-research/cloudprober/common/tls/proto/config.proto";
+
+message ProbeConf {
+  enum IPProtocol {
+    ip4 = 1;
+    ip6 = 2;
+  }
+
+  enum HTTPMethod {
+    GET = 0;
+    POST = 1;
+    PUT = 2;
+    HEAD = 3;
+    DELETE = 4;
+    PATCH = 5;
+    OPTIONS = 6;
+  }
+
+  enum CompressionAlgo {
+    gzip = 1;
+    br = 2;
+    deflate = 3;
+    identity = 4;
+  }
+
+  message BasicAuth {
+    required string username = 1;
+    required string password = 2;
+  }
+
+  optional string valid_status_code = 1 [default = "2xx"];
+  optional string valid_http_versions = 2;
+  optional HTTPMethod method = 3 [default = GET];
+  optional bool secure = 4 [default = false];
+  map<string, string> headers = 5;
+  optional string body_size_limit = 6;
+  optional CompressionAlgo compression = 7;
+  optional bool follow_redirects = 8 [default = true];
+  optional bool fail_if_ssl = 9 [default = false];
+  optional bool fail_if_not_ssl = 10 [default = false];
+  optional string fail_if_body_matches_regexp = 11;
+  optional string fail_if_body_not_matches_regexp = 12;
+  optional string fail_if_header_matches_regexp = 13;
+  optional string fail_if_header_not_matches_regexp = 14;
+  optional BasicAuth basic_auth = 15;
+  optional string bearer_token = 16;
+  optional string proxy_url = 17;
+  optional common.tls.TLSConfig tls_config = 18;
+  optional IPProtocol preferred_ip_protocol = 19 [default = ip6];
+  optional bool ip_protocol_fallback = 20 [default = true];
+  optional bool enable_http2 = 21 [default = true];
+  optional string body = 22;
+}
+
+extend cloudprober.probes.ProbeDef {
+  optional ProbeConf http_probe = 200;
+}
