@@ -55,6 +55,7 @@ message ProbeConf {
   optional bool ip_protocol_fallback = 20 [default = true];
   optional bool enable_http2 = 21 [default = true];
   optional string body = 22;
+  optional string path = 23;
 }
 
 extend cloudprober.probes.ProbeDef {
