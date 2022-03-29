@@ -114,6 +114,14 @@ func (p *Probe) Logger() *logrus.Entry {
 	return p.logger
 }
 
+func relURLForTarget(path string) string {
+	if path != "" {
+		return path
+	}
+
+	return ""
+}
+
 func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.EventMetrics) (success bool, err error) {
 	logger := p.logger.WithField("target", target.Name)
 
@@ -127,6 +135,14 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 	} else {
 		baseURL = fmt.Sprintf("%s://%s", p.scheme, target.Name)
 	}
+
+	path := p.config.GetPath()
+	if len(path) > 0 && path[0] != '/' {
+		logger.Debugf("invalid path: %s, must begin with '/'", path)
+		return
+	}
+
+	baseURL = fmt.Sprintf("%s%s", baseURL, relURLForTarget(p.config.GetPath()))
 
 	em.AddLabel("url", baseURL)
 
