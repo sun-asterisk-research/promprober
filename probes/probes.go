@@ -8,7 +8,7 @@ import (
 	"github.com/cloudprober/cloudprober/probes/options"
 	"github.com/cloudprober/cloudprober/targets/endpoint"
 	"github.com/sirupsen/logrus"
-	"github.com/sun-asterisk-research/cloudprober/common"
+	"github.com/sun-asterisk-research/promprober/common"
 )
 
 type Probe interface {

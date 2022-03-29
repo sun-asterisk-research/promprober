@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	configpb "github.com/sun-asterisk-research/cloudprober/probes/http/proto"
+	configpb "github.com/sun-asterisk-research/promprober/probes/http/proto"
 )
 
 // byteCounter implements an io.ReadCloser that keeps track of the total

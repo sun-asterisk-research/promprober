@@ -1,9 +1,9 @@
 syntax = "proto2";
 
-option go_package="github.com/sun-asterisk-research/cloudprober/probes/http/proto";
+option go_package="github.com/sun-asterisk-research/promprober/probes/http/proto";
 
 import "github.com/cloudprober/cloudprober/probes/proto/config.proto";
-import "github.com/sun-asterisk-research/cloudprober/common/tls/proto/config.proto";
+import "github.com/sun-asterisk-research/promprober/common/tls/proto/config.proto";
 
 message ProbeConf {
   enum IPProtocol {
@@ -50,7 +50,7 @@ message ProbeConf {
   optional BasicAuth basic_auth = 15;
   optional string bearer_token = 16;
   optional string proxy_url = 17;
-  optional common.tls.TLSConfig tls_config = 18;
+  optional promprober.common.tls.TLSConfig tls_config = 18;
   optional IPProtocol preferred_ip_protocol = 19 [default = ip6];
   optional bool ip_protocol_fallback = 20 [default = true];
   optional bool enable_http2 = 21 [default = true];

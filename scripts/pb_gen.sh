@@ -8,14 +8,14 @@ working_dir="$PWD"
 TMPDIR=$(mktemp -d)
 
 PROJECTROOT="$PWD"
-PROJECT="github.com/sun-asterisk-research/cloudprober"
+PROJECT="github.com/sun-asterisk-research/promprober"
 
 git clone --quiet "$PWD" "$TMPDIR/$PROJECT"
 
 git diff > "$TMPDIR/patch"
 
 cd $TMPDIR/$PROJECT
-git apply "$TMPDIR/patch"
+[ -s "$TMPDIR/patch" ] && git apply "$TMPDIR/patch"
 go mod vendor
 cd $TMPDIR
 

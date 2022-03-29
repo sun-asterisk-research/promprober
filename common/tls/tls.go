@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	configpb "github.com/sun-asterisk-research/cloudprober/common/tls/proto"
+	configpb "github.com/sun-asterisk-research/promprober/common/tls/proto"
 )
 
 func NewTLSConfig(cfg *configpb.TLSConfig) (*tls.Config, error) {

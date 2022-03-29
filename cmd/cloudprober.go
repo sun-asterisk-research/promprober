@@ -11,8 +11,8 @@ import (
 	"github.com/cloudprober/cloudprober/probes"
 	"github.com/cloudprober/cloudprober/web"
 	"github.com/sirupsen/logrus"
-	"github.com/sun-asterisk-research/cloudprober/probes/http"
-	httppb "github.com/sun-asterisk-research/cloudprober/probes/http/proto"
+	"github.com/sun-asterisk-research/promprober/probes/http"
+	httppb "github.com/sun-asterisk-research/promprober/probes/http/proto"
 )
 
 var (
@@ -49,7 +49,6 @@ func getConfig() string {
 func main() {
 	flag.Parse()
 
-	// probes.RegisterUserDefined("http", &http.Probe{})
 	probes.RegisterProbeType(int(httppb.E_HttpProbe.TypeDescriptor().Number()), func() probes.Probe { return &http.Probe{} })
 
 	err := cloudprober.InitFromConfig(getConfig())

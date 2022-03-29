@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/sun-asterisk-research/cloudprober/common/tls"
-	configpb "github.com/sun-asterisk-research/cloudprober/probes/http/proto"
+	"github.com/sun-asterisk-research/promprober/common/tls"
+	configpb "github.com/sun-asterisk-research/promprober/probes/http/proto"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/publicsuffix"
 )

@@ -19,10 +19,10 @@ import (
 	"github.com/cloudprober/cloudprober/probes/options"
 	"github.com/cloudprober/cloudprober/targets/endpoint"
 	"github.com/sirupsen/logrus"
-	"github.com/sun-asterisk-research/cloudprober/common"
-	"github.com/sun-asterisk-research/cloudprober/common/tls"
-	"github.com/sun-asterisk-research/cloudprober/probes"
-	configpb "github.com/sun-asterisk-research/cloudprober/probes/http/proto"
+	"github.com/sun-asterisk-research/promprober/common"
+	"github.com/sun-asterisk-research/promprober/common/tls"
+	"github.com/sun-asterisk-research/promprober/probes"
+	configpb "github.com/sun-asterisk-research/promprober/probes/http/proto"
 	// "github.com/cloudprober/cloudprober/validators"
 )
 

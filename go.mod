@@ -1,4 +1,4 @@
-module github.com/sun-asterisk-research/cloudprober
+module github.com/sun-asterisk-research/promprober
 
 go 1.17
 
