@@ -8,16 +8,16 @@ pb-gen:
 	@./scripts/pb_gen.sh
 
 gofmt:
-	gofmt -w $$(go list ./... | sed -re "s/^github.com\/sun-asterisk-research\/cloudprober\///")
+	gofmt -w $$(go list ./... | sed -re "s/^github.com\/sun-asterisk-research\/promprober\///")
 
 build:
 	go build -o _output/cloudprober cmd/cloudprober.go
 
 run:
-	go run cmd/cloudprober.go -config_file=$(CONFIG_FILE)
+	go run cmd/cloudprober.go -C=$(CONFIG_FILE)
 
 dev:
-	docker exec -it $(COMPOSE_PROJECT_NAME)-go-1 go run cmd/cloudprober.go -config_file=$(CONFIG_FILE)
+	docker exec -it $(COMPOSE_PROJECT_NAME)-go-1 go run cmd/cloudprober.go -DC=$(CONFIG_FILE)
 
 devsh:
 	docker exec -it $(COMPOSE_PROJECT_NAME)-go-1 sh
