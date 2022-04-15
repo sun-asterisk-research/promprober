@@ -2,7 +2,7 @@ module github.com/sun-asterisk-research/promprober
 
 go 1.17
 
-replace github.com/golang/glog => ./logging/glog
+replace github.com/golang/glog => ./pkg/glog
 
 require (
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137

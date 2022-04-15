@@ -32,4 +32,4 @@ devenv-down:
 	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker-compose down
 
 dockerbuild:
-	docker build . -t "$(IMAGE_PREFIX)/cloudprober:$(TAG)"
+	docker build . -t "$(IMAGE_PREFIX)/promprober:$(TAG)"
