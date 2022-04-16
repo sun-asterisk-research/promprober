@@ -48,6 +48,7 @@ func newTransport(httpTransport *http.Transport, logger *logrus.Entry) *transpor
 	}
 }
 
+// NewTraceContext creates new context for tracing a request using this transport.
 func (t *transport) NewTraceContext(parent context.Context) context.Context {
 	trace := &httptrace.ClientTrace{
 		DNSStart:             t.DNSStart,

@@ -123,6 +123,22 @@ func relURLForTarget(path string) string {
 }
 
 func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.EventMetrics) (success bool, err error) {
+	durationSeconds := metrics.NewMap("phase", metrics.NewFloat(0))
+	contentLength := metrics.NewInt(0)
+	uncompressedBodyLength := metrics.NewInt(0)
+	redirects := metrics.NewInt(0)
+	isSSL := metrics.NewInt(0)
+	statusCode := metrics.NewInt(0)
+	httpVersion := metrics.NewFloat(0)
+
+	em.AddMetric("probe_http_duration_seconds", durationSeconds)
+	em.AddMetric("probe_http_content_length", contentLength)
+	em.AddMetric("probe_http_uncompressed_body_length", uncompressedBodyLength)
+	em.AddMetric("probe_http_redirects", redirects)
+	em.AddMetric("probe_http_ssl", isSSL)
+	em.AddMetric("probe_http_status_code", statusCode)
+	em.AddMetric("probe_http_version", httpVersion)
+
 	logger := p.logger.WithField("target", target.Name)
 
 	ctx, cancel := context.WithTimeout(ctx, p.opts.Timeout)
@@ -161,6 +177,7 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 
 	resolved.PopulateMetrics(em)
 	resolvedIP := resolved.IP.String()
+	durationSeconds.IncKeyBy("resolve", metrics.NewFloat(resolved.LookupTime))
 
 	// Replace the host field in the URL with the IP we resolved.
 	origHost := targetURL.Host
@@ -211,6 +228,10 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 	}
 
 	traceCtx := traceableTransport.NewTraceContext(ctx)
+
+	for _, phase := range []string{"connect", "tls", "processing", "transfer"} {
+		durationSeconds.IncKeyBy(phase, metrics.NewFloat(0))
+	}
 
 	resp, err := client.Do(req.WithContext(traceCtx))
 	// https://github.com/prometheus/blackbox_exporter/blob/master/prober/http.go#L454-L458
@@ -277,13 +298,11 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 		em.AddMetric("probe_http_version", metrics.NewFloat(httpVersionNumber))
 	}
 
-	httpDurationSeconds := metrics.NewMap("phase", metrics.NewFloat(0))
-
 	traceableTransport.mu.Lock()
 	defer traceableTransport.mu.Unlock()
 	for i, trace := range traceableTransport.traces {
 		if i != 0 {
-			httpDurationSeconds.IncKeyBy("resolve", metrics.NewFloat(trace.dnsDone.Sub(trace.start).Seconds()))
+			durationSeconds.IncKeyBy("resolve", metrics.NewFloat(trace.dnsDone.Sub(trace.start).Seconds()))
 		}
 
 		// Continue here if we never got a connection because a request failed.
@@ -293,10 +312,10 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 
 		if trace.tls {
 			// dnsDone must be set if gotConn was set.
-			httpDurationSeconds.IncKeyBy("connect", metrics.NewFloat(trace.connectDone.Sub(trace.dnsDone).Seconds()))
-			httpDurationSeconds.IncKeyBy("tls", metrics.NewFloat(trace.tlsDone.Sub(trace.tlsStart).Seconds()))
+			durationSeconds.IncKeyBy("connect", metrics.NewFloat(trace.connectDone.Sub(trace.dnsDone).Seconds()))
+			durationSeconds.IncKeyBy("tls", metrics.NewFloat(trace.tlsDone.Sub(trace.tlsStart).Seconds()))
 		} else {
-			httpDurationSeconds.IncKeyBy("connect", metrics.NewFloat(trace.gotConn.Sub(trace.dnsDone).Seconds()))
+			durationSeconds.IncKeyBy("connect", metrics.NewFloat(trace.gotConn.Sub(trace.dnsDone).Seconds()))
 		}
 
 		// Continue here if we never got a response from the server.
@@ -304,7 +323,7 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 			continue
 		}
 
-		httpDurationSeconds.IncKeyBy("processing", metrics.NewFloat(trace.responseStart.Sub(trace.gotConn).Seconds()))
+		durationSeconds.IncKeyBy("processing", metrics.NewFloat(trace.responseStart.Sub(trace.gotConn).Seconds()))
 
 		// Continue here if we never read the full response from the server.
 		// Usually this means that request either failed or was redirected.
@@ -312,10 +331,8 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 			continue
 		}
 
-		httpDurationSeconds.IncKeyBy("transfer", metrics.NewFloat(trace.end.Sub(trace.responseStart).Seconds()))
+		durationSeconds.IncKeyBy("transfer", metrics.NewFloat(trace.end.Sub(trace.responseStart).Seconds()))
 	}
-
-	em.AddMetric("probe_http_duration_seconds", httpDurationSeconds)
 
 	if resp.TLS != nil {
 		tlsVersionInfo := metrics.NewMap("version", metrics.NewInt(0))
@@ -324,15 +341,16 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 		sslLastChainInfo := metrics.NewMap("fingerprint_sha_256", metrics.NewInt(0))
 		sslLastChainInfo.IncKey(tls.GetFingerprint(resp.TLS))
 
-		em.AddMetric("probe_http_ssl", metrics.NewInt(1))
+		isSSL.Inc()
+
 		em.AddMetric("probe_ssl_earliest_cert_expiry", metrics.NewInt(tls.GetEarliestCertExpiry(resp.TLS).Unix()))
 		em.AddMetric("probe_tls_version_info", tlsVersionInfo)
 		em.AddMetric("probe_ssl_last_chain_expiry_timestamp_seconds", metrics.NewInt(tls.GetLastChainExpiry(resp.TLS).Unix()))
 		em.AddMetric("probe_ssl_last_chain_info", sslLastChainInfo)
 	}
 
-	em.AddMetric("probe_http_status_code", metrics.NewInt(int64(resp.StatusCode)))
-	em.AddMetric("probe_http_content_length", metrics.NewInt(resp.ContentLength))
+	statusCode.IncBy(metrics.NewInt(int64(resp.StatusCode)))
+	contentLength.IncBy(metrics.NewInt(resp.ContentLength))
 
 	return
 }
