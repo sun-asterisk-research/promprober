@@ -33,7 +33,7 @@ message ProbeConf {
     required string password = 2;
   }
 
-  optional string valid_status_code = 1 [default = "2xx"];
+  repeated int32 valid_status_code = 1 [packed = true];
   optional string valid_http_versions = 2;
   optional HTTPMethod method = 3 [default = GET];
   optional bool secure = 4 [default = false];

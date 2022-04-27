@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"fmt"
+	"github.com/sun-asterisk-research/promprober/common/array"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -18,6 +19,7 @@ import (
 	"github.com/cloudprober/cloudprober/metrics"
 	"github.com/cloudprober/cloudprober/probes/options"
 	"github.com/cloudprober/cloudprober/targets/endpoint"
+
 	"github.com/sirupsen/logrus"
 	"github.com/sun-asterisk-research/promprober/common"
 	"github.com/sun-asterisk-research/promprober/common/tls"
@@ -251,7 +253,7 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 		logger.WithField("status_code", resp.StatusCode).Debug("Received HTTP response")
 
 		// TODO add status code validation
-		if 200 <= resp.StatusCode && resp.StatusCode < 300 {
+		if p.config.GetValidStatusCode() == nil || array.ItemExists(p.config.GetValidStatusCode(), int32(resp.StatusCode))  {
 			success = true
 		}
 
