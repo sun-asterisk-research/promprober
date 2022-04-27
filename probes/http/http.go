@@ -352,6 +352,10 @@ func (p *Probe) Run(ctx context.Context, target endpoint.Endpoint, em *metrics.E
 	statusCode.IncBy(metrics.NewInt(int64(resp.StatusCode)))
 	contentLength.IncBy(metrics.NewInt(resp.ContentLength))
 
+	if !success {
+		em.AddMetric("probe_error_message", metrics.NewString(resp.Status))
+	}
+
 	return
 }
 

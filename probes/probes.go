@@ -58,6 +58,7 @@ func RunProbe(ctx context.Context, p Probe, target endpoint.Endpoint, dataChan c
 			}
 		} else {
 			em.AddMetric("probe_success", metrics.NewInt(0))
+			em.AddMetric("probe_error_message", metrics.NewString(err.Error()))
 			logger.Infof("Probe failed: %v", err)
 		}
 
