@@ -26,6 +26,11 @@ func RunProbe(ctx context.Context, p Probe, target endpoint.Endpoint, dataChan c
 	ticker := time.NewTicker(opts.Interval)
 	defer ticker.Stop()
 
+	var latencyDist metrics.Value
+	if opts.LatencyDist != nil {
+		latencyDist = opts.LatencyDist.Clone()
+	}
+
 	for ts := time.Now(); true; ts = <-ticker.C {
 		// Don't run another probe if context is canceled already.
 		if common.IsCtxDone(ctx) {
@@ -62,6 +67,11 @@ func RunProbe(ctx context.Context, p Probe, target endpoint.Endpoint, dataChan c
 		}
 
 		em.AddMetric("probe_duration_seconds", metrics.NewFloat(time.Since(start).Seconds()))
+
+		if latencyDist != nil {
+			em.AddMetric("latency", latencyDist)
+			latencyDist.AddFloat64(time.Since(start).Seconds())
+		}
 
 		opts.LogMetrics(em)
 
