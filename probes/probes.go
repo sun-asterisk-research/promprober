@@ -2,6 +2,7 @@ package probes
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/cloudprober/cloudprober/metrics"
@@ -44,8 +45,15 @@ func RunProbe(ctx context.Context, p Probe, target endpoint.Endpoint, dataChan c
 		em.AddLabel("probe", p.GetType())
 		em.AddLabel("target", p.GetName())
 
+		var apdexT float64
+
 		for _, label := range opts.AdditionalLabels {
-			em.AddLabel(label.KeyValueForTarget(target.Name))
+			label, value := label.KeyValueForTarget(target.Name)
+			if label == "apdex_t" {
+				apdexT, _ = strconv.ParseFloat(value, 64)
+			}
+
+			em.AddLabel(label, value)
 		}
 
 		logger.Debug("Starting probe")
@@ -71,10 +79,41 @@ func RunProbe(ctx context.Context, p Probe, target endpoint.Endpoint, dataChan c
 		if latencyDist != nil {
 			em.AddMetric("latency", latencyDist)
 			latencyDist.AddFloat64(time.Since(start).Seconds())
+
+			if apdexT > 0 {
+				addMetricsApdex(apdexT, latencyDist.String(), em)
+			}
 		}
 
 		opts.LogMetrics(em)
 
 		dataChan <- em
 	}
+}
+
+func addMetricsApdex(apdexT float64, latencyDist string, em *metrics.EventMetrics) {
+	var parseLatencyDist *metrics.Distribution
+	parseLatencyDist, err := metrics.ParseDistFromString(latencyDist)
+	if err != nil {
+		return
+	}
+
+	var satisfied int64
+	var tolerating int64
+
+	bucketCounts := parseLatencyDist.Data().BucketCounts
+	lowerBounds := parseLatencyDist.Data().LowerBounds
+
+	for i, value := range bucketCounts {
+		if i != (len(bucketCounts)-1) && lowerBounds[i+1] <= apdexT {
+			satisfied += value
+			tolerating = satisfied
+		}
+		if i != (len(bucketCounts)-1) && lowerBounds[i+1] > apdexT && lowerBounds[i+1] <= 4*apdexT {
+			tolerating += value
+		}
+	}
+
+	em.AddMetric("probe_latency_satisfied", metrics.NewInt(satisfied))
+	em.AddMetric("probe_latency_tolerating", metrics.NewInt(tolerating))
 }
